@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Manutenção Frota | Offline</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --card-hover: #334155;
+  --border: #334155;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --radius: 12px;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+header {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #60a5fa, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--card);
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow);
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.kpi-card:hover::before {
+  opacity: 1;
+}
+
+.kpi-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.kpi-value.success { color: var(--success); }
+.kpi-value.warning { color: var(--warning); }
+.kpi-value.danger { color: var(--danger); }
+
+.controls {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.control-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+input, select, button {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+button {
+  background: var(--primary);
+  border: none;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+button.secondary {
+  background: var(--card-hover);
+  border: 1px solid var(--border);
+}
+
+button.secondary:hover {
+  background: var(--border);
+}
+
+.table-wrapper {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.table-container {
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+}
+
+th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr {
+  transition: background 0.2s ease;
+}
+
+tbody tr:hover {
+  background: var(--card-hover);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge.success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+.badge.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+.badge.danger { background: rgba(239, 68, 0.2); color: var(--danger); }
+.badge.info { background: rgba(59, 130, 246, 0.2); color: var(--primary); }
+
+.chart-container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  height: 300px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.bar {
+  flex: 1;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-hover) 100%);
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 40px;
+}
+
+.bar:hover {
+  opacity: 0.8;
+  transform: scaleY(1.02);
+}
+
+.bar-label {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.bar-value {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+input[type="text"].inline-edit {
+  background: transparent;
+  border: 1px dashed var(--border);
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  width: 100%;
+  max-width: 150px;
+}
+
+input[type="text"].inline-edit:focus {
+  background: var(--bg);
+  border-style: solid;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  body { padding: 12px; }
+  h1 { font-size: 1.5rem; }
+  header { flex-direction: column; align-items: flex-start; }
+  .kpi-grid { grid-template-columns: 1fr; }
+  .controls { flex-direction: column; }
+  .control-group { min-width: 100%; }
+  .table-container { font-size: 0.85rem; }
+  th, td { padding: 10px 12px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Painel de Manutenção Frota</h1>
+    <div class="header-actions">
+      <button class="secondary" onclick="exportExcel()">📊 Exportar Excel Completo</button>
+      <button class="secondary" onclick="limparDados()">🗑️ Limpar LocalStorage</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('pneus')">🛞 Pneus</button>
+    <button class="tab-btn" onclick="switchTab('baterias')">🔋 Baterias</button>
+    <button class="tab-btn" onclick="switchTab('manutencoes')">🔧 Manutenções</button>
+    <button class="tab-btn" onclick="switchTab('dashboard')">📈 Dashboard Geral</button>
+  </div>
+
+  <!-- ABA PNEUS -->
+  <div id="pneus" class="tab-content active">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total de Pneus</div>
+        <div class="kpi-value" id="pneus-total">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Custo Total</div>
+        <div class="kpi-value" id="pneus-custo-total">R$ 0,00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Custo Médio por KM</div>
+        <div class="kpi-value" id="pneus-custo-km-medio">R$ 0,00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pneus Críticos</div>
+        <div class="kpi-value danger" id="pneus-criticos">0</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>Buscar Filial</label>
+        <input type="text" id="pneus-busca-filial" placeholder="Digite a filial..." oninput="filtrarPneus()">
+      </div>
+      <div class="control-group">
+        <label>Ano</label>
+        <select id="pneus-filtro-ano" onchange="filtrarPneus()">
+          <option value="">Todos</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Status</label>
+        <select id="pneus-filtro-status" onchange="filtrarPneus()">
+          <option value="">Todos</option>
+          <option value="bom">Bom > 20.000 KM restantes</option>
+          <option value="atencao">Atenção 10.000-20.000 KM</option>
+          <option value="critico">Crítico < 10.000 KM</option>
+        </select>
+      </div>
+      <button onclick="exportCSV('pneus')">📥 Exportar CSV</button>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-container">
+        <table id="tabela-pneus">
+          <thead>
+            <tr>
+              <th>Data Instalação</th>
+              <th>Filial</th>
+              <th>Frota/Placa</th>
+              <th>Posição</th>
+              <th>Marca/Modelo</th>
+              <th>KM Instalação</th>
+              <th>KM Atual</th>
+              <th>KM Rodados</th>
+              <th>Vida Útil Rest.</th>
+              <th>Valor</th>
+              <th>Custo/KM</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA BATERIAS -->
+  <div id="baterias" class="tab-content">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total de Baterias</div>
+        <div class="kpi-value" id="bat-total">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Custo Total</div>
+        <div class="kpi-value" id="bat-custo-total">R$ 0,00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Idade Média</div>
+        <div class="kpi-value" id="bat-idade-media">0 dias</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Alertas</div>
+        <div class="kpi-value warning" id="bat-alertas">0</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>Buscar Filial</label>
+        <input type="text" id="bat-busca-filial" placeholder="Digite a filial..." oninput="filtrarBaterias()">
+      </div>
+      <div class="control-group">
+        <label>Alerta</label>
+        <select id="bat-filtro-alerta" onchange="filtrarBaterias()">
+          <option value="">Todos</option>
+          <option value="ok">OK</option>
+          <option value="atencao">Atenção > 18 meses</option>
+          <option value="critico">Crítico > 24 meses</option>
+        </select>
+      </div>
+      <button onclick="exportCSV('baterias')">📥 Exportar CSV</button>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-container">
+        <table id="tabela-baterias">
+          <thead>
+            <tr>
+              <th>Data Instalação</th>
+              <th>Filial</th>
+              <th>Frota/Placa</th>
+              <th>Marca/Modelo</th>
+              <th>Tensão Atual</th>
+              <th>Idade (dias)</th>
+              <th>Idade (meses)</th>
+              <th>Valor</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA MANUTENÇÕES -->
+  <div id="manutencoes" class="tab-content">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Gasto Borracharia</div>
+        <div class="kpi-value" id="manut-total-gasto">R$ 0,00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Qtd Atendimentos</div>
+        <div class="kpi-value" id="manut-total-atend">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Ticket Médio</div>
+        <div class="kpi-value" id="manut-ticket-medio">R$ 0,00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Filial Top Gasto</div>
+        <div class="kpi-value" id="manut-top-filial">-</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>Buscar Filial</label>
+        <input type="text" id="manut-busca-filial" placeholder="Digite a filial..." oninput="filtrarManut()">
+      </div>
+      <div class="control-group">
+        <label>Ano</label>
+        <select id="manut-filtro-ano" onchange="filtrarManut()">
+          <option value="">Todos</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Tipo Classificado</label>
+        <select id="manut-filtro-tipo" onchange="filtrarManut()">
+          <option value="">Todos</option>
+          <option value="Conserto">Conserto</option>
+          <option value="Deslocamento/Socorro">Deslocamento/Socorro</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Arquivo Origem</label>
+        <select id="manut-filtro-origem" onchange="filtrarManut()">
+          <option value="">Todos</option>
+          <option value="wesley">wesley</option>
+          <option value="torreto">torreto</option>
+        </select>
+      </div>
+      <button onclick="exportCSV('manutencoes')">📥 Exportar CSV</button>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-container">
+        <table id="tabela-manut">
+          <thead>
+            <tr>
+              <th>Data NF</th>
+              <th>Filial</th>
+              <th>Descrição Original</th>
+              <th>Tipo Classificado</th>
+              <th>Tipo Detalhado</th>
+              <th>Frota/Placa</th>
+              <th>Valor Total</th>
+              <th>Quantidade</th>
+              <th>Arquivo Origem</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA DASHBOARD GERAL -->
+  <div id="dashboard" class="tab-content">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Gasto Total Geral</div>
+        <div class="kpi-value success" id="dash-total-geral">R$ 0,00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Gasto Pneus</div>
+        <div class="kpi-value" id="dash-total-pneus">R$ 0,00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Gasto Baterias</div>
+        <div class="kpi-value" id="dash-total-bat">R$ 0,00</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Gasto Manutenções</div>
+        <div class="kpi-value" id="dash-total-manut">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Comparativo 2025 vs 2026</div>
+      <div class="bar-chart" id="chart-comparativo"></div>
+    </div>
+
+    <div class="chart-container">
+      <div class="chart-title">Top 5 Filiais - Gasto Borracharia</div>
+      <div class="bar-chart" id="chart-top-filiais"></div>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="chart-title" style="padding: 20px 20px 0;">Resumo por Filial</div>
+      <div class="table-container">
+        <table id="tabela-resumo-filial">
+          <thead>
+            <tr>
+              <th>Filial</th>
+              <th>Qtd Pneus</th>
+              <th>Gasto Pneus</th>
+              <th>Qtd Baterias</th>
+              <th>Gasto Baterias</th>
+              <th>Qtd Manutenções</th>
+              <th>Gasto Manutenções</th>
+              <th>Total Geral</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========================================
+// DADOS EMBUTIDOS
+// ========================================
+
+const VIDA_UTIL_PNEU = 80000; // KM
+const HOJE = new Date();
+
+function gerarDadosPneus() {
+  const filiais = ['SPO', 'RJO', 'BHZ', 'BSB', 'CWB', 'POA', 'REC', 'FOR', 'SSA', 'MAO'];
+  const marcas = ['Michelin', 'Goodyear', 'Pirelli', 'Bridgestone', 'Continental'];
+  const modelos = ['XZE2', 'KMAX S', 'Formula', 'R249', 'HSC1'];
+  const posicoes = ['DD', 'DE', 'TED', 'TEE', 'TRD', 'TRE'];
+  const dados = [];
+  
+  for(let i = 0; i < 1326; i++) {
+    const ano = 2024 + Math.floor(Math.random() * 3);
+    const mes = 1 + Math.floor(Math.random() * 12);
+    const dia = 1 + Math.floor(Math.random() * 28);
+    const dataInst = new Date(ano, mes-1, dia);
+    const filial = filiais[Math.floor(Math.random() * filiais.length)];
+    const frota = `FL${1000 + Math.floor(Math.random() * 500)}`;
+    const kmInst = Math.floor(Math.random() * 200000) + 50000;
+    const kmAtual = kmInst + Math.floor(Math.random() * 60000);
+    const valor = (Math.random() * 2000 + 1500).toFixed(2);
+    const kmRodados = kmAtual - kmInst;
+    const custoKm = kmRodados > 0 ? parseFloat(valor) / kmRodados : 0;
+    
+    dados.push({
+      id: `pneu_${i}`,
+      dataInstalacao: dataInst.toISOString().split('T')[0],
+      filial,
+      frota,
+      posicao: posicoes[Math.floor(Math.random() * posicoes.length)],
+      marca: marcas[Math.floor(Math.random() * marcas.length)],
+      modelo: modelos[Math.floor(Math.random() * modelos.length)],
+      kmInstalacao: kmInst,
+      kmAtual: kmAtual,
+      kmRodados: kmRodados,
+      vidaUtilRestante: Math.max(0, VIDA_UTIL_PNEU - kmRodados),
+      valor: parseFloat(valor),
+      custoKm: custoKm
+    });
+  }
+  return dados;
+}
+
+function gerarDadosBaterias() {
+  const filiais = ['SPO', 'RJO', 'BHZ', 'BSB', 'CWB', 'POA', 'REC', 'FOR', 'SSA', 'MAO'];
+  const marcas = ['Moura', 'Heliar', 'ACDelco', 'Bosch', 'Ajax'];
+  const modelos = ['M60GD', 'HF75PD', '48A', 'S4', 'AX100'];
+  const dados = [];
+  
+  for(let i = 0; i < 148; i++) {
+    const diasAtras = Math.floor(Math.random() * 730);
+    const dataInst = new Date(HOJE.getTime() - diasAtras * 24 * 60 * 60 * 1000);
+    const filial = filiais[Math.floor(Math.random() * filiais.length)];
+    const frota = `FL${1000 + Math.floor(Math.random() * 500)}`;
+    const valor = (Math.random() * 800 + 600).toFixed(2);
+    const tensao = (12 + Math.random() * 1.5).toFixed(2);
+    const idadeMeses = diasAtras / 30.44;
+    
+    dados.push({
+      id: `bat_${i}`,
+      dataInstalacao: dataInst.toISOString().split('T')[0],
+      filial,
+      frota,
+      marca: marcas[Math.floor(Math.random() * marcas.length)],
+      modelo: modelos[Math.floor(Math.random() * modelos.length)],
+      tensaoAtual: parseFloat(tensao),
+      idadeDias: diasAtras,
+      idadeMeses: idadeMeses.toFixed(1),
+      valor: parseFloat(valor)
+    });
+  }
+  return dados;
+}
+
+function gerarDadosManut() {
+  const filiais = ['SPO', 'RJO', 'BHZ', 'BSB', 'CWB', 'POA', 'REC', 'FOR', 'SSA', 'MAO'];
+  const descricoes = {
+    'PRESTACAO SERVICOS BORRACHARIA': 'Conserto',
+    'SERVICOS DE DESLOCAMENTO': 'Deslocamento/Socorro'
+  };
+  const tiposDetalhados = ['Conserto', 'Calibragem', 'Rodízio', 'Vulcanização', 'Troca de Válvula'];
+  const origens = ['wesley', 'torreto'];
+  const dados = [];
+  
+  for(let i = 0; i < 1237; i++) {
+    const ano = 2025 + Math.floor(Math.random() * 2);
+    const mes = 1 + Math.floor(Math.random() * 12);
+    const dia = 1 + Math.floor(Math.random() * 28);
+    const dataNF = new Date(ano, mes-1, dia);
+    const filial = filiais[Math.floor(Math.random() * filiais.length)];
+    const descOriginal = Object.keys(descricoes)[Math.floor(Math.random() * 2)];
+    const tipoClass = descricoes[descOriginal];
+    const frota = `FL${1000 + Math.floor(Math.random() * 500)}`;
+    const valor = (Math.random() * 500 + 50).toFixed(2);
+    const qtd = Math.floor(Math.random() * 4) + 1;
+    const origem = origens[Math.floor(Math.random() * 2)];
+    
+    dados.push({
+      id: `manut_${i}`,
+      dataNF: dataNF.toISOString().split('T')[0],
+      filial,
+      descricaoOriginal: descOriginal,
+      tipoClassificado: tipoClass,
+      tipoDetalhado: '',
+      frota,
+      valorTotal: parseFloat(valor),
+      quantidade: qtd,
+      arquivoOrigem: origem
+    });
+  }
+  return dados;
+}
+
+// ========================================
+// ESTADO GLOBAL
+// ========================================
+
+let DB = {
+  pneus: [],
+  baterias: [],
+  manutencoes: []
+};
+
+let FILTROS = {
+  pneus: { filial: '', ano: '', status: '' },
+  baterias: { filial: '', alerta: '' },
+  manutencoes: { filial: '', ano: '', tipo: '', origem: '' }
+};
+
+// ========================================
+// INICIALIZAÇÃO
+// ========================================
+
+function init() {
+  const saved = localStorage.getItem('painelFrotaDB');
+  if (saved) {
+    DB = JSON.parse(saved);
+  } else {
+    DB.pneus = gerarDadosPneus();
+    DB.baterias = gerarDadosBaterias();
+    DB.manutencoes = gerarDadosManut();
+    salvarLocalStorage();
+  }
+  
+  renderPneus();
+  renderBaterias();
+  renderManut();
+  renderDashboard();
+}
+
+function salvarLocalStorage() {
+  localStorage.setItem('painelFrotaDB', JSON.stringify(DB));
+}
+
+function limparDados() {
+  if(confirm('Deseja realmente limpar todos os dados salvos? Isso irá recarregar dados mockados.')) {
+    localStorage.removeItem('painelFrotaDB');
+    location.reload();
+  }
+}
+
+// ========================================
+// ABA PNEUS
+// ========================================
+
+function getStatusPneu(vidaRestante) {
+  if (vidaRestante > 20000) return { classe: 'success', texto: 'Bom' };
+  if (vidaRestante > 10000) return { classe: 'warning', texto: 'Atenção' };
+  return { classe: 'danger', texto: 'Crítico' };
+}
+
+function renderPneus() {
+  let dados = [...DB.pneus];
+  
+  // Filtros
+  if (FILTROS.pneus.filial) {
+    dados = dados.filter(d => d.filial.toLowerCase().includes(FILTROS.pneus.filial.toLowerCase()));
+  }
+  if (FILTROS.pneus.ano) {
+    dados = dados.filter(d => d.dataInstalacao.startsWith(FILTROS.pneus.ano));
+  }
+  if (FILTROS.pneus.status) {
+    dados = dados.filter(d => {
+      const s = getStatusPneu(d.vidaUtilRestante);
+      return s.texto.toLowerCase() === FILTROS.pneus.status;
+    });
+  }
+  
+  // KPIs
+  const total = dados.length;
+  const custoTotal = dados.reduce((sum, d) => sum + d.valor, 0);
+  const custoKmMedio = dados.length > 0 ? dados.reduce((sum, d) => sum + d.custoKm, 0) / dados.length : 0;
+  const criticos = dados.filter(d => d.vidaUtilRestante < 10000).length;
+  
+  document.getElementById('pneus-total').textContent = total.toLocaleString('pt-BR');
+  document.getElementById('pneus-custo-total').textContent = formatMoeda(custoTotal);
+  document.getElementById('pneus-custo-km-medio').textContent = formatMoeda(custoKmMedio, 3);
+  document.getElementById('pneus-criticos').textContent = criticos;
+  
+  // Tabela
+  const tbody = document.querySelector('#tabela-pneus tbody');
+  tbody.innerHTML = dados.map(d => {
+    const status = getStatusPneu(d.vidaUtilRestante);
+    return `
+      <tr>
+        <td>${formatData(d.dataInstalacao)}</td>
+        <td><strong>${d.filial}</strong></td>
+        <td>${d.frota}</td>
+        <td>${d.posicao}</td>
+        <td>${d.marca} ${d.modelo}</td>
+        <td>${d.kmInstalacao.toLocaleString('pt-BR')}</td>
+        <td>${d.kmAtual.toLocaleString('pt-BR')}</td>
+        <td>${d.kmRodados.toLocaleString('pt-BR')}</td>
+        <td>${d.vidaUtilRestante.toLocaleString('pt-BR')}</td>
+        <td>${formatMoeda(d.valor)}</td>
+        <td>${formatMoeda(d.custoKm, 3)}</td>
+        <td><span class="badge ${status.classe}">${status.texto}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filtrarPneus() {
+  FILTROS.pneus.filial = document.getElementById('pneus-busca-filial').value;
+  FILTROS.pneus.ano = document.getElementById('pneus-filtro-ano').value;
+  FILTROS.pneus.status = document.getElementById('pneus-filtro-status').value;
+  renderPneus();
+}
+
+// ========================================
+// ABA BATERIAS
+// ========================================
+
+function getStatusBateria(meses) {
+  if (meses < 18) return { classe: 'success', texto: 'OK' };
+  if (meses < 24) return { classe: 'warning', texto: 'Atenção' };
+  return { classe: 'danger', texto: 'Crítico' };
+}
+
+function renderBaterias() {
+  let dados = [...DB.baterias];
+  
+  // Filtros
+  if (FILTROS.baterias.filial) {
+    dados = dados.filter(d => d.filial.toLowerCase().includes(FILTROS.baterias.filial.toLowerCase()));
+  }
+  if (FILTROS.baterias.alerta) {
+    dados = dados.filter(d => {
+      const s = getStatusBateria(parseFloat(d.idadeMeses));
+      return s.texto.toLowerCase() === FILTROS.baterias.alerta;
+    });
+  }
+  
+  // KPIs
+  const total = dados.length;
+  const custoTotal = dados.reduce((sum, d) => sum + d.valor, 0);
+  const idadeMediaDias = dados.length > 0 ? dados.reduce((sum, d) => sum + d.idadeDias, 0) / dados.length : 0;
+  const alertas = dados.filter(d => parseFloat(d.idadeMeses) > 18).length;
+  
+  document.getElementById('bat-total').textContent = total.toLocaleString('pt-BR');
+  document.getElementById('bat-custo-total').textContent = formatMoeda(custoTotal);
+  document.getElementById('bat-idade-media').textContent = Math.round(idadeMediaDias) + ' dias';
+  document.getElementById('bat-alertas').textContent = alertas;
+  
+  // Tabela
+  const tbody = document.querySelector('#tabela-baterias tbody');
+  tbody.innerHTML = dados.map(d => {
+    const status = getStatusBateria(parseFloat(d.idadeMeses));
+    return `
+      <tr>
+        <td>${formatData(d.dataInstalacao)}</td>
+        <td><strong>${d.filial}</strong></td>
+        <td>${d.frota}</td>
+        <td>${d.marca} ${d.modelo}</td>
+        <td>${d.tensaoAtual}V</td>
+        <td>${d.idadeDias}</td>
+        <td>${d.idadeMeses}</td>
+        <td>${formatMoeda(d.valor)}</td>
+        <td><span class="badge ${status.classe}">${status.texto}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filtrarBaterias() {
+  FILTROS.baterias.filial = document.getElementById('bat-busca-filial').value;
+  FILTROS.baterias.alerta = document.getElementById('bat-filtro-alerta').value;
+  renderBaterias();
+}
+
+// ========================================
+// ABA MANUTENÇÕES
+// ========================================
+
+function renderManut() {
+  let dados = [...DB.manutencoes];
+  
+  // Filtros
+  if (FILTROS.manutencoes.filial) {
+    dados = dados.filter(d => d.filial.toLowerCase().includes(FILTROS.manutencoes.filial.toLowerCase()));
+  }
+  if (FILTROS.manutencoes.ano) {
+    dados = dados.filter(d => d.dataNF.startsWith(FILTROS.manutencoes.ano));
+  }
+  if (FILTROS.manutencoes.tipo) {
+    dados = dados.filter(d => d.tipoClassificado === FILTROS.manutencoes.tipo);
+  }
+  if (FILTROS.manutencoes.origem) {
+    dados = dados.filter(d => d.arquivoOrigem === FILTROS.manutencoes.origem);
+  }
+  
+  // KPIs
+  const totalGasto = dados.reduce((sum, d) => sum + d.valorTotal, 0);
+  const totalAtend = dados.length;
+  const ticketMedio = totalAtend > 0 ? totalGasto / totalAtend : 0;
+  
+  const gastoPorFilial = {};
+  dados.forEach(d => {
+    gastoPorFilial[d.filial] = (gastoPorFilial[d.filial] || 0) + d.valorTotal;
+  });
+  const topFilial = Object.keys(gastoPorFilial).sort((a,b) => gastoPorFilial[b] - gastoPorFilial[a])[0] || '-';
+  
+  document.getElementById('manut-total-gasto').textContent = formatMoeda(totalGasto);
+  document.getElementById('manut-total-atend').textContent = totalAtend.toLocaleString('pt-BR');
+  document.getElementById('manut-ticket-medio').textContent = formatMoeda(ticketMedio);
+  document.getElementById('manut-top-filial').textContent = topFilial;
+  
+  // Tabela
+  const tbody = document.querySelector('#tabela-manut tbody');
+  tbody.innerHTML = dados.map(d => `
+    <tr>
+      <td>${formatData(d.dataNF)}</td>
+      <td><strong>${d.filial}</strong></td>
+      <td>${d.descricaoOriginal}</td>
+      <td><span class="badge info">${d.tipoClassificado}</span></td>
+      <td><input type="text" class="inline-edit" value="${d.tipoDetalhado}" 
+          onchange="atualizarTipoDetalhado('${d.id}', this.value)"
+          placeholder="Especificar..."></td>
+      <td><input type="text" class="inline-edit" value="${d.frota}" 
+          onchange="atualizarFrotaManut('${d.id}', this.value)"></td>
+      <td>${formatMoeda(d.valorTotal)}</td>
+      <td>${d.quantidade}</td>
+      <td><span class="badge">${d.arquivoOrigem}</span></td>
+    </tr>
+  `).join('');
+}
+
+function filtrarManut() {
+  FILTROS.manutencoes.filial = document.getElementById('manut-busca-filial').value;
+  FILTROS.manutencoes.ano = document.getElementById('manut-filtro-ano').value;
+  FILTROS.manutencoes.tipo = document.getElementById('manut-filtro-tipo').value;
+  FILTROS.manutencoes.origem = document.getElementById('manut-filtro-origem').value;
+  renderManut();
+}
+
+function atualizarTipoDetalhado(id, valor) {
+  const item = DB.manutencoes.find(d => d.id === id);
+  if (item) {
+    item.tipoDetalhado = valor;
+    salvarLocalStorage();
+  }
+}
+
+function atualizarFrotaManut(id, valor) {
+  const item = DB.manutencoes.find(d => d.id === id);
+  if (item) {
+    item.frota = valor;
+    salvarLocalStorage();
+  }
+}
+
+// ========================================
+// DASHBOARD GERAL
+// ========================================
+
+function renderDashboard() {
+  const totalPneus = DB.pneus.reduce((sum, d) => sum + d.valor, 0);
+  const totalBat = DB.baterias.reduce((sum, d) => sum + d.valor, 0);
+  const totalManut = DB.manutencoes.reduce((sum, d) => sum + d.valorTotal, 0);
+  const totalGeral = totalPneus + totalBat + totalManut;
+  
+  document.getElementById('dash-total-geral').textContent = formatMoeda(totalGeral);
+  document.getElementById('dash-total-pneus').textContent = formatMoeda(totalPneus);
+  document.getElementById('dash-total-bat').textContent = formatMoeda(totalBat);
+  document.getElementById('dash-total-manut').textContent = formatMoeda(totalManut);
+  
+  // Comparativo 2025 vs 2026
+  const gastos2025 = {
+    pneus: DB.pneus.filter(d => d.dataInstalacao.startsWith('2025')).reduce((s,d) => s + d.valor, 0),
+    bat: DB.baterias.filter(d => d.dataInstalacao.startsWith('2025')).reduce((s,d) => s + d.valor, 0),
+    manut: DB.manutencoes.filter(d => d.dataNF.startsWith('2025')).reduce((s,d) => s + d.valorTotal, 0)
+  };
+  const gastos2026 = {
+    pneus: DB.pneus.filter(d => d.dataInstalacao.startsWith('2026')).reduce((s,d) => s + d.valor, 0),
+    bat: DB.baterias.filter(d => d.dataInstalacao.startsWith('2026')).reduce((s,d) => s + d.valor, 0),
+    manut: DB.manutencoes.filter(d => d.dataNF.startsWith('2026')).reduce((s,d) => s + d.valorTotal, 0)
+  };
+  
+  renderBarChart('chart-comparativo', [
+    { label: '2025 Total', value: gastos2025.pneus + gastos2025.bat + gastos2025.manut },
+    { label: '2026 Total', value: gastos2026.pneus + gastos2026.bat + gastos2026.manut },
+    { label: '2025 Pneus', value: gastos2025.pneus },
+    { label: '2026 Pneus', value: gastos2026.pneus },
+    { label: '2025 Baterias', value: gastos2025.bat },
+    { label: '2026 Baterias', value: gastos2026.bat },
+    { label: '2025 Manut', value: gastos2025.manut },
+    { label: '2026 Manut', value: gastos2026.manut }
+  ]);
+  
+  // Top 5 Filiais Borracharia
+  const gastoManutPorFilial = {};
+  DB.manutencoes.forEach(d => {
+    gastoManutPorFilial[d.filial] = (gastoManutPorFilial[d.filial] || 0) + d.valorTotal;
+  });
+  const top5 = Object.entries(gastoManutPorFilial)
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([filial, valor]) => ({ label: filial, value: valor }));
+  
+  renderBarChart('chart-top-filiais', top5);
+  
+  // Resumo por Filial
+  const filiais = [...new Set([
+    ...DB.pneus.map(d => d.filial),
+    ...DB.baterias.map(d => d.filial),
+    ...DB.manutencoes.map(d => d.filial)
+  ])].sort();
+  
+  const tbody = document.querySelector('#tabela-resumo-filial tbody');
+  tbody.innerHTML = filiais.map(f => {
+    const p = DB.pneus.filter(d => d.filial === f);
+    const b = DB.baterias.filter(d => d.filial === f);
+    const m = DB.manutencoes.filter(d => d.filial === f);
+    const totalP = p.reduce((s,d) => s + d.valor, 0);
+    const totalB = b.reduce((s,d) => s + d.valor, 0);
+    const totalM = m.reduce((s,d) => s + d.valorTotal, 0);
+    
+    return `
+      <tr>
+        <td><strong>${f}</strong></td>
+        <td>${p.length}</td>
+        <td>${formatMoeda(totalP)}</td>
+        <td>${b.length}</td>
+        <td>${formatMoeda(totalB)}</td>
+        <td>${m.length}</td>
+        <td>${formatMoeda(totalM)}</td>
+        <td><strong>${formatMoeda(totalP + totalB + totalM)}</strong></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderBarChart(containerId, data) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  const maxValue = Math.max(...data.map(d => d.value));
+  container.innerHTML = data.map(d => {
+    const height = maxValue > 0 ? (d.value / maxValue * 100) : 0;
+    return `
+      <div class="bar" style="height: ${height}%">
+        <div class="bar-value">${formatMoeda(d.value, 0)}</div>
+        <div class="bar-label">${d.label}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========================================
+// EXPORTAÇÃO
+// ========================================
+
+function exportCSV(tipo) {
+  let dados, nomeArquivo, cabecalho;
+  
+  if (tipo === 'pneus') {
+    dados = DB.pneus;
+    nomeArquivo = 'pneus_export.csv';
+    cabecalho = 'Data Instalacao,Filial,Frota,Posicao,Marca,Modelo,KM Instalacao,KM Atual,KM Rodados,Vida Util Restante,Valor,Custo por KM\n';
+  } else if (tipo === 'baterias') {
+    dados = DB.baterias;
+    nomeArquivo = 'baterias_export.csv';
+    cabecalho = 'Data Instalacao,Filial,Frota,Marca,Modelo,Tensao Atual,Idade Dias,Idade Meses,Valor\n';
+  } else {
+    dados = DB.manutencoes;
+    nomeArquivo = 'manutencoes_export.csv';
+    cabecalho = 'Data NF,Filial,Descricao Original,Tipo Classificado,Tipo Detalhado,Frota,Valor Total,Quantidade,Arquivo Origem\n';
+  }
+  
+  const linhas = dados.map(d => {
+    if (tipo === 'pneus') {
+      return `${d.dataInstalacao},${d.filial},${d.frota},${d.posicao},${d.marca},${d.modelo},${d.kmInstalacao},${d.kmAtual},${d.kmRodados},${d.vidaUtilRestante},${d.valor},${d.custoKm}`;
+    } else if (tipo === 'baterias') {
+      return `${d.dataInstalacao},${d.filial},${d.frota},${d.marca},${d.modelo},${d.tensaoAtual},${d.idadeDias},${d.idadeMeses},${d.valor}`;
+    } else {
+      return `${d.dataNF},${d.filial},"${d.descricaoOriginal}",${d.tipoClassificado},"${d.tipoDetalhado}",${d.frota},${d.valorTotal},${d.quantidade},${d.arquivoOrigem}`;
+    }
+  }).join('\n');
+  
+  const csv = cabecalho + linhas;
+  downloadFile(csv, nomeArquivo, 'text/csv');
+}
+
+function exportExcel() {
+  let conteudo = 'PAINEL DE MANUTENCAO FROTA - EXPORTACAO COMPLETA\n\n';
+  
+  // PNEUS
+  conteudo += '=== PNEUS ===\n';
+  conteudo += 'Data Instalacao,Filial,Frota,Posicao,Marca,Modelo,KM Instalacao,KM Atual,KM Rodados,Vida Util Restante,Valor,Custo por KM\n';
+  DB.pneus.forEach(d => {
+    conteudo += `${d.dataInstalacao},${d.filial},${d.frota},${d.posicao},${d.marca},${d.modelo},${d.kmInstalacao},${d.kmAtual},${d.kmRodados},${d.vidaUtilRestante},${d.valor},${d.custoKm}\n`;
+  });
+  
+  conteudo += '\n=== BATERIAS ===\n';
+  conteudo += 'Data Instalacao,Filial,Frota,Marca,Modelo,Tensao Atual,Idade Dias,Idade Meses,Valor\n';
+  DB.baterias.forEach(d => {
+    conteudo += `${d.dataInstalacao},${d.filial},${d.frota},${d.marca},${d.modelo},${d.tensaoAtual},${d.idadeDias},${d.idadeMeses},${d.valor}\n`;
+  });
+  
+  conteudo += '\n=== MANUTENCOES ===\n';
+  conteudo += 'Data NF,Filial,Descricao Original,Tipo Classificado,Tipo Detalhado,Frota,Valor Total,Quantidade,Arquivo Origem\n';
+  DB.manutencoes.forEach(d => {
+    conteudo += `${d.dataNF},${d.filial},"${d.descricaoOriginal}",${d.tipoClassificado},"${d.tipoDetalhado}",${d.frota},${d.valorTotal},${d.quantidade},${d.arquivoOrigem}\n`;
+  });
+  
+  downloadFile(conteudo, 'painel_frota_completo.csv', 'text/csv');
+}
+
+function downloadFile(conteudo, nome, tipo) {
+  const blob = new Blob([conteudo], { type: tipo + ';charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', nome);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ========================================
+// UTILITÁRIOS
+// ========================================
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById(tabName).classList.add('active');
+  
+  if (tabName === 'dashboard') renderDashboard();
+}
+
+function formatMoeda(valor, decimais = 2) {
+  return 'R$ ' + valor.toLocaleString('pt-BR', { 
+    minimumFractionDigits: decimais, 
+    maximumFractionDigits: decimais 
+  });
+}
+
+function formatData(data) {
+  const d = new Date(data);
+  return d.toLocaleDateString('pt-BR');
+}
+
+// ========================================
+// INICIAR
+// ========================================
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
